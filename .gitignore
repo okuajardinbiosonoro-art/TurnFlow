@@ -1,0 +1,63 @@
+# Python / virtual environments
+.venv/
+venv/
+env/
+ENV/
+.python-version
+
+# Bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.hypothesis/
+.pyre/
+.nox/
+.tox/
+
+# Coverage and test artifacts
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# Packaging / build artifacts
+build/
+dist/
+site/
+*.egg-info/
+pip-wheel-metadata/
+
+# Application data and generated output
+turnflow.db
+*.db
+*.sqlite
+*.sqlite3
+reports/
+logs/
+*.log
+
+# Environment files and secrets
+.env
+.env.*
+!.env.example
+!.env.sample
+
+# Editors / IDEs / OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.swp
+*.swo
+*.tmp
+*.bak
+*.orig
+*.rej
+
+# Frontend / misc tooling
+node_modules/
+*.tsbuildinfo

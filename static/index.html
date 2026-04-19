@@ -1,0 +1,1425 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>TurnFlow (TF) - Gestión de Turnos</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+
+    :root {
+      --okua-dark: #1d3557;
+      --okua-accent: #457b9d;
+      --okua-bg: #f4f5f7;
+    }
+
+    /* Pantalla de login a pantalla completa */
+    .login-screen {
+      min-height: 100vh;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 12px;
+      box-sizing: border-box;
+      background:
+        radial-gradient(circle at top, rgba(69, 123, 157, 0.25), transparent 65%),
+        linear-gradient(135deg, #0b1f26, #1d3557 50%, #2a9d8f);
+    }
+
+    /* Tarjeta central de login */
+    .login-card {
+      width: 100%;
+      max-width: 420px;
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 24px 22px 20px;
+      box-shadow: 0 18px 45px rgba(0, 0, 0, 0.25);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* Contenedor del logo en login */
+    .login-logo-wrapper {
+      background: #0b1f26;
+      border-radius: 12px;
+      padding: 16px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .login-logo {
+      max-width: 260px;
+      width: 100%;
+      height: auto;
+    }
+
+    .login-title {
+      margin: 8px 0 4px 0;
+      font-size: 1.3rem;
+      color: #1d3557;
+    }
+
+    .login-subtitle {
+      margin: 0;
+      font-size: 0.9rem;
+      color: #555;
+    }
+
+    /* Formulario de login */
+    .login-form {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .login-form label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .login-form input {
+      font-size: 0.95rem;
+      padding: 6px 8px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+
+    .login-form button {
+      margin-top: 10px;
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: none;
+      background: var(--okua-accent);
+      color: #f1faee;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .login-form button:hover {
+      filter: brightness(1.05);
+    }
+
+    .login-status {
+      min-height: 1.2em;
+      color: #c62828;
+    }
+
+    /* Contenedor de la app (header + main) */
+    .app-shell {
+      min-height: 100vh;
+    }
+
+    /* Clase genérica para ocultar elementos */
+    .hidden {
+      display: none !important;
+    }
+
+    /* Ajuste de toolbar principal en el header existente */
+    .toolbar-main {
+      flex-direction: column;
+      align-items: flex-end;
+    }
+
+    @media (max-width: 900px) {
+      .login-card {
+        padding: 20px 16px 18px;
+        border-radius: 12px;
+      }
+      .login-logo {
+        max-width: 220px;
+      }
+    }
+
+    /* ---- aquí dejas EXACTAMENTE lo que ya tenías ---- */
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f4f5f7;
+      color: #222;
+    }
+
+    header {
+      background: #1d3557;
+      color: #f1faee;
+      padding: 12px 16px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .brand-logo-card {
+      background: #f1faee;          /* fondo claro que hace contraste con el logo negro */
+      padding: 4px 8px;
+      border-radius: 8px;
+      box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06); /* borde muy sutil */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .brand-logo {
+      height: 38px;    /* puedes subir a 42 si lo quieres más protagonista */
+      width: auto;
+      display: block;
+    }
+
+    .brand-text h1 {
+      margin: 0;
+      font-size: 1.1rem;
+    }
+
+    .subtitle {
+      font-size: 0.8rem;
+      opacity: 0.85;
+    }
+
+    @media (max-width: 900px) {
+      header {
+        align-items: flex-start;
+      }
+      .brand {
+        width: 100%;
+      }
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .toolbar label {
+      font-size: 0.85rem;
+    }
+
+    input[type="date"],
+    input[type="number"],
+    input[type="text"],
+    input[type="email"],
+    button,
+    select {
+      font-size: 0.9rem;
+      padding: 4px 8px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+
+    button {
+      cursor: pointer;
+      border: none;
+      background: #457b9d;
+      color: #f1faee;
+      font-weight: 600;
+    }
+
+    button.secondary {
+      background: #e0e0e0;
+      color: #333;
+    }
+
+    button.danger {
+      background: #e63946;
+      color: #fff;
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+
+    main {
+      display: flex;
+      flex-direction: row;
+      height: calc(100vh - 60px);
+      max-height: calc(100vh - 60px);
+    }
+
+    @media (max-width: 900px) {
+      main {
+        flex-direction: column;
+        height: auto;
+      }
+    }
+
+    .panel {
+      padding: 10px 14px;
+      overflow-y: auto;
+    }
+
+    .panel-slots {
+      flex: 1.2;
+      border-right: 1px solid #ddd;
+      background: #ffffff;
+    }
+
+    .panel-details {
+      flex: 1;
+      background: #fafafa;
+    }
+
+    h2 {
+      margin-top: 0;
+      font-size: 1rem;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 4px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    th, td {
+      border-bottom: 1px solid #eee;
+      padding: 4px 6px;
+      text-align: left;
+    }
+
+    th {
+      background: #f0f0f0;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    tr.slot-row {
+      cursor: pointer;
+    }
+
+    tr.slot-row:hover {
+      background: #f1f8ff;
+    }
+
+    .slot-badge {
+      padding: 2px 6px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      display: inline-block;
+    }
+
+    .slot-low {
+      background: #e0f7fa;
+      color: #006064;
+    }
+
+    .slot-medium {
+      background: #fff3e0;
+      color: #e65100;
+    }
+
+    .slot-full {
+      background: #fde0dc;
+      color: #c62828;
+    }
+
+    .slot-over {
+      background: #b71c1c;
+      color: #fff;
+    }
+
+    .status-badge {
+      padding: 2px 6px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      display: inline-block;
+    }
+
+    .status-programado {
+      background: #e3f2fd;
+      color: #1e88e5;
+    }
+    .status-check_in {
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+    .status-no_show {
+      background: #fff3e0;
+      color: #ef6c00;
+    }
+    .status-cancelado {
+      background: #eeeeee;
+      color: #757575;
+    }
+
+    .warning {
+      margin-top: 4px;
+      font-size: 0.8rem;
+      color: #c62828;
+    }
+
+    .small {
+      font-size: 0.75rem;
+      color: #555;
+    }
+
+    .flex-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .flex-col {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .section-card {
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 8px;
+      margin-bottom: 10px;
+      background: #ffffff;
+    }
+
+    .section-card h3 {
+      margin-top: 0;
+      margin-bottom: 4px;
+      font-size: 0.95rem;
+    }
+
+    .field-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .field-group label {
+      font-size: 0.8rem;
+      min-width: 80px;
+    }
+
+    .field-group input {
+      min-width: 80px;
+    }
+
+    .bookings-table td {
+      vertical-align: middle;
+    }
+
+    .booking-actions button {
+      margin-right: 3px;
+      margin-bottom: 3px;
+      font-size: 0.75rem;
+      padding: 3px 5px;
+    }
+
+    .info-bar {
+      font-size: 0.8rem;
+      margin-bottom: 6px;
+      color: #555;
+    }
+
+    .highlight {
+      font-weight: 600;
+      color: #1d3557;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- PANTALLA DE INICIO DE SESIÓN -->
+  <div id="loginScreen" class="login-screen">
+    <div class="login-card">
+      <div class="login-logo-wrapper">
+        <img src="/static/okua-logo.png"
+             alt="OKÚA Jardín Biosonoro"
+             class="login-logo">
+      </div>
+
+      <div class="login-text">
+        <h1 class="login-title">TurnFlow (TF)</h1>
+        <p class="login-subtitle">
+          Gestión de turnos para <strong>OKÚA Jardín Biosonoro</strong>.
+        </p>
+      </div>
+
+      <div class="login-form">
+        <label for="loginUser">Usuario</label>
+        <input type="text"
+               id="loginUser"
+               placeholder="Ingresa tu usuario"
+               autocomplete="username">
+
+        <label for="loginPass">Contraseña</label>
+        <input type="password"
+               id="loginPass"
+               placeholder="Ingresa tu contraseña"
+               autocomplete="current-password">
+
+        <button onclick="login()">Entrar</button>
+      </div>
+
+      <div id="loginStatus" class="login-status small"></div>
+    </div>
+  </div>
+
+  <div id="appShell" class="app-shell hidden">
+
+    <header>
+      <div class="brand">
+        <div class="brand-logo-card">
+          <img src="/static/okua-logo.png"
+              alt="Okúa Jardín Biosonoro"
+              class="brand-logo">
+        </div>
+        <div class="brand-text">
+          <h1>TurnFlow (TF)</h1>
+          <div class="subtitle">
+            Gestión diaria de turnos · Okúa Jardín Biosonoro
+          </div>
+        </div>
+      </div>
+
+      <div class="toolbar toolbar-main">
+        <div class="flex-row">
+          <label for="dateInput">Fecha:</label>
+          <input type="date" id="dateInput">
+
+          <button onclick="initDay()">Inicializar día</button>
+          <button class="secondary" onclick="loadSlots()">Actualizar turnos</button>
+          <button class="secondary" onclick="generateReport()">Generar CSV del día</button>
+        </div>
+
+        <!-- NUEVA FILA: usuario conectado + botón salir -->
+        <div class="flex-row">
+          <span id="headerUserInfo" class="small"></span>
+          <button class="secondary" onclick="logout()">Salir</button>
+        </div>
+      </div>
+    </header>
+
+    <main>
+    <!-- Panel izquierdo: lista de turnos -->
+    <section class="panel panel-slots">
+      <h2>Turnos del día</h2>
+      <div id="slotsInfo" class="info-bar"></div>
+      <div style="max-height: calc(100vh - 120px); overflow-y: auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Hora</th>
+              <th>Capacidad</th>
+              <th>Ocupación</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody id="slotsTableBody">
+            <!-- Filas de turnos aquí -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Panel derecho: detalles del turno seleccionado -->
+    <section class="panel panel-details">
+      <h2>Detalle del turno seleccionado</h2>
+      <div id="selectedSlotInfo" class="info-bar">
+        Selecciona un turno en la tabla para ver y editar sus grupos.
+      </div>
+
+      <div class="section-card">
+        <h3>Grupos del turno</h3>
+        <div id="bookingsInfo" class="small"></div>
+        <div style="max-height: 260px; overflow-y: auto;">
+          <table class="bookings-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Grupo</th>
+                <th>Personas</th>
+                <th>Manillas</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="bookingsTableBody">
+              <!-- Grupos aquí -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <h3>Agregar nuevo grupo</h3>
+        <div class="flex-col">
+          <div class="field-group">
+            <label for="newGroupName">Responsable</label>
+            <input type="text" id="newGroupName" placeholder="Nombre responsable del grupo">
+          </div>
+          <div class="field-group">
+            <label for="newGroupCount">Personas</label>
+            <input type="number" id="newGroupCount" min="1" value="1">
+          </div>
+          <div class="field-group">
+            <label for="newGroupBands">Manillas</label>
+            <input type="number" id="newGroupBands" min="0" value="0">
+          </div>
+          <div class="field-group">
+            <label for="newGroupEmail">Email</label>
+            <input type="email" id="newGroupEmail" placeholder="Opcional">
+          </div>
+          <div class="field-group">
+            <label for="newGroupPhone">Teléfono</label>
+            <input type="text" id="newGroupPhone" placeholder="Opcional">
+          </div>
+          <div class="field-group">
+            <label for="newGroupObs">Obs.</label>
+            <input type="text" id="newGroupObs" placeholder="N/A">
+          </div>
+
+          <div class="flex-row">
+            <button onclick="createBooking()">Guardar grupo</button>
+            <span id="newGroupWarning" class="warning"></span>
+          </div>
+        </div>
+      </div>
+    </section>
+    </main>
+
+  </div>
+
+  <script>
+    const API_BASE = ""; // mismo origen (http://127.0.0.1:8000)
+
+    let slots = [];
+    let selectedSlotId = null;
+    let authToken = null;
+    let currentUser = null;
+
+    function showLoginScreen() {
+      const login = document.getElementById("loginScreen");
+      const app = document.getElementById("appShell");
+      if (login) login.classList.remove("hidden");
+      if (app) app.classList.add("hidden");
+    }
+
+    function showAppShell() {
+      const login = document.getElementById("loginScreen");
+      const app = document.getElementById("appShell");
+      if (login) login.classList.add("hidden");
+      if (app) app.classList.remove("hidden");
+    }
+
+    function authHeaders(extra = {}) {
+      const headers = { ...extra };
+      if (authToken) {
+        headers["Authorization"] = "Bearer " + authToken;
+      }
+      return headers;
+    }
+
+    function handleAuthErrors(res, { on401, on403, skipLogout = false } = {}) {
+      if (res.status === 401) {
+        if (on401) on401();        // <-- primero
+        if (!skipLogout) logout(); // <-- después
+        return true;
+      }
+      if (res.status === 403) {
+        if (on403) on403();
+        return true;
+      }
+      return false;
+    }
+
+    let sessionExpiredNotified = false;
+
+    function notifySessionExpired() {
+      document.getElementById("loginStatus").textContent = "Sesión expirada.";
+      if (sessionExpiredNotified) return;
+      sessionExpiredNotified = true;
+      alert("Tu sesión expiró. Inicia sesión de nuevo.");
+    }
+    
+    async function login() {
+      const userInput = document.getElementById("loginUser");
+      const passInput = document.getElementById("loginPass");
+      const loginStatusEl = document.getElementById("loginStatus");
+
+      const username = userInput ? userInput.value.trim() : "";
+      const password = passInput ? passInput.value : "";
+
+      if (!username || !password) {
+        alert("Introduce usuario y contraseña.");
+        return;
+      }
+
+      const formData = new URLSearchParams();
+      formData.append("username", username);
+      formData.append("password", password);
+
+      try {
+        const res = await fetch(`${API_BASE}/auth/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: formData.toString(),
+        });
+
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          alert("Error de login: " + (data.detail || res.status));
+          if (loginStatusEl) loginStatusEl.textContent = "No se pudo iniciar sesión.";
+          return;
+        }
+
+        const data = await res.json();
+        authToken = data.access_token;
+        sessionStorage.setItem("tf_token", authToken);
+
+        const status = await loadCurrentUser();
+
+        if (status === "network_error") {
+          if (loginStatusEl) {
+            loginStatusEl.textContent =
+              "Sesión iniciada, pero sin conexión para validar usuario. Revisa tu red.";
+          }
+          if (passInput) passInput.value = "";
+          return;
+        }
+
+        if (status !== "ok") {
+          alert("No se pudo validar la sesión. Vuelve a intentar.");
+          if (loginStatusEl) loginStatusEl.textContent = "Sesión no válida.";
+          return;
+        }
+
+        sessionExpiredNotified = false;
+        if (passInput) passInput.value = "";
+        if (loginStatusEl) loginStatusEl.textContent = "";
+
+        // Ocultamos la pantalla de login y mostramos la app
+        showAppShell();
+        await loadSlots();
+      } catch (err) {
+        console.error(err);
+        if (loginStatusEl) {
+          loginStatusEl.textContent = "Error de conexión al hacer login.";
+        }
+        alert("Error de conexión al hacer login.");
+      }
+    }
+
+
+    async function loadCurrentUser() {
+      if (!authToken) return "no_token";
+
+      try {
+        const res = await fetch(`${API_BASE}/auth/me`, {
+          headers: authHeaders(),
+        });
+
+        if (res.status === 401 || res.status === 403) {
+          // token inválido o expirado
+          return "invalid_token";
+        }
+
+        if (!res.ok) {
+          return "error";
+        }
+
+        currentUser = await res.json();
+
+        const headerUserInfo = document.getElementById("headerUserInfo");
+        if (headerUserInfo) {
+          headerUserInfo.textContent = `Conectado como ${currentUser.username}`;
+        }
+
+        const loginStatusEl = document.getElementById("loginStatus");
+        if (loginStatusEl) {
+          loginStatusEl.textContent = "";
+        }
+
+        return "ok";
+      } catch (err) {
+        console.error(err);
+        return "network_error";
+      }
+    }
+
+    function logout() {
+      sessionExpiredNotified = false;
+      authToken = null;
+      currentUser = null;
+      sessionStorage.removeItem("tf_token");
+
+      const userInput = document.getElementById("loginUser");
+      const passInput = document.getElementById("loginPass");
+      const loginStatusEl = document.getElementById("loginStatus");
+      if (userInput) userInput.value = "";
+      if (passInput) passInput.value = "";
+      if (loginStatusEl) {
+        loginStatusEl.textContent = "Sesión cerrada. Ingresa de nuevo para continuar.";
+      }
+
+      const headerUserInfo = document.getElementById("headerUserInfo");
+      if (headerUserInfo) headerUserInfo.textContent = "";
+
+      // limpiar datos de turnos en la UI
+      slots = [];
+      selectedSlotId = null;
+
+      const slotsInfoEl = document.getElementById("slotsInfo");
+      const slotsBodyEl = document.getElementById("slotsTableBody");
+      const selectedSlotInfoEl = document.getElementById("selectedSlotInfo");
+      const bookingsInfoEl = document.getElementById("bookingsInfo");
+      const bookingsBodyEl = document.getElementById("bookingsTableBody");
+      const newGroupWarningEl = document.getElementById("newGroupWarning");
+
+      if (slotsInfoEl) slotsInfoEl.textContent = "Inicia sesión para ver los turnos.";
+      if (slotsBodyEl) slotsBodyEl.innerHTML = "";
+      if (selectedSlotInfoEl) {
+        selectedSlotInfoEl.textContent =
+          "Selecciona un turno en la tabla para ver y editar sus grupos.";
+      }
+      if (bookingsInfoEl) bookingsInfoEl.textContent = "";
+      if (bookingsBodyEl) bookingsBodyEl.innerHTML = "";
+      if (newGroupWarningEl) newGroupWarningEl.textContent = "";
+
+      // volvemos a la pantalla de login
+      showLoginScreen();
+    }
+
+    // Configurar fecha por defecto (hoy)
+    function setTodayDate() {
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, "0");
+      const dd = String(today.getDate()).padStart(2, "0");
+      document.getElementById("dateInput").value = `${yyyy}-${mm}-${dd}`;
+    }
+
+    function getSelectedDate() {
+      const v = document.getElementById("dateInput").value;
+      if (!v) {
+        alert("Selecciona una fecha.");
+        throw new Error("No date selected");
+      }
+      return v;
+    }
+
+    async function initDay() {
+      const fecha = getSelectedDate();
+      try {
+        const res = await fetch(`${API_BASE}/days/${fecha}/init`, {
+          method: "POST",
+          headers: authHeaders(),
+        });
+
+        // Manejo estándar 401 / 403
+        if (handleAuthErrors(res, {
+          on401: notifySessionExpired,
+          on403: () => alert("No tienes permisos para esta acción.")
+        })) {
+          return;
+        }
+
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          alert("Error al inicializar el día: " + (data.detail || res.status));
+          return;
+        }
+
+        const data = await res.json();
+        alert(`Día ${data.fecha} inicializado.\nSlots creados: ${data.slots_creados}\nSlots existentes: ${data.slots_existentes}`);
+        await loadSlots();
+      } catch (err) {
+        console.error(err);
+        alert("Error de conexión al inicializar el día.");
+      }
+    }
+
+    async function loadSlots() {
+      const fecha = getSelectedDate();
+      const info = document.getElementById("slotsInfo");
+      const tbody = document.getElementById("slotsTableBody");
+      tbody.innerHTML = "";
+      info.textContent = "Cargando turnos...";
+
+      try {
+        const res = await fetch(`${API_BASE}/slots/${fecha}`, {
+          headers: authHeaders(),
+        });
+
+        // Manejo estándar 401 / 403
+        if (handleAuthErrors(res, {
+          skipLogout: false, // o true si no quieres limpiar todo
+          on401: () => { notifySessionExpired(); }, 
+          on403: () => { info.textContent = "No tienes permisos para ver los turnos."; }
+        })) return;
+
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          info.textContent = "Error al cargar turnos: " + (data.detail || res.status);
+          return;
+        }
+
+        slots = await res.json();
+
+        if (!slots || slots.length === 0) {
+          info.textContent = "No hay turnos para esta fecha. Inicializa el día.";
+          return;
+        }
+
+        info.textContent = `Turnos para ${fecha}: ${slots.length} slots.`;
+        renderSlotsTable();
+      } catch (err) {
+        console.error(err);
+        info.textContent = "Error de conexión al cargar turnos.";
+      }
+    }
+
+    function renderSlotsTable() {
+      const tbody = document.getElementById("slotsTableBody");
+      tbody.innerHTML = "";
+
+      slots.forEach(slot => {
+        const personas = slot.personas_programadas;
+        const capNom = slot.capacidad_nominal;
+
+        let ratio = 0;
+        if (capNom > 0) {
+          ratio = personas / capNom;
+        }
+
+        let badgeClass = "slot-low";
+        let label = `${personas}/${capNom}`;
+
+        if (personas > capNom) {
+          badgeClass = "slot-over";
+        } else if (ratio >= 1.0) {
+          badgeClass = "slot-full";
+        } else if (ratio >= 0.75) {
+          badgeClass = "slot-medium";
+        }
+
+        const tr = document.createElement("tr");
+        tr.className = "slot-row";
+        tr.onclick = () => selectSlot(slot.id);
+
+        const tdHora = document.createElement("td");
+        tdHora.textContent = `${slot.hora_inicio.substring(0,5)} - ${slot.hora_fin.substring(0,5)}`;
+
+        const tdCap = document.createElement("td");
+        tdCap.textContent = `${capNom} personas`;
+
+        const tdOcc = document.createElement("td");
+        const spanOcc = document.createElement("span");
+        spanOcc.className = `slot-badge ${badgeClass}`;
+        spanOcc.textContent = label;
+        tdOcc.appendChild(spanOcc);
+
+        const tdEstado = document.createElement("td");
+        tdEstado.textContent = slot.estado;
+
+        tr.appendChild(tdHora);
+        tr.appendChild(tdCap);
+        tr.appendChild(tdOcc);
+        tr.appendChild(tdEstado);
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function selectSlot(slotId) {
+      selectedSlotId = slotId;
+      const slot = slots.find(s => s.id === slotId);
+      if (!slot) return;
+
+      const info = document.getElementById("selectedSlotInfo");
+      info.innerHTML = `
+        <span class="highlight">Turno ${slot.hora_inicio.substring(0,5)} - ${slot.hora_fin.substring(0,5)}</span>
+        &nbsp;|&nbsp; Capacidad máxima del turno: ${slot.capacidad_nominal} personas.
+      `;
+
+      document.getElementById("newGroupWarning").textContent = "";
+      await loadBookingsForSlot(slotId);
+    }
+
+    async function loadBookingsForSlot(slotId) {
+      const tbody = document.getElementById("bookingsTableBody");
+      const info = document.getElementById("bookingsInfo");
+      tbody.innerHTML = "";
+      info.textContent = "Cargando grupos...";
+
+      try {
+        const res = await fetch(`${API_BASE}/slots/${slotId}/bookings`, {
+          headers: authHeaders(),
+        });
+
+        // Manejo estándar 401 / 403
+        if (handleAuthErrors(res, {
+          on401: () => { notifySessionExpired(); },
+          on403: () => { info.textContent = "No tienes permisos para ver los grupos de este turno."; }
+        })) {
+          return;
+        }
+
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          info.textContent = "Error al cargar grupos: " + (data.detail || res.status);
+          return;
+        }
+
+        const bookings = await res.json();
+
+        if (!bookings || bookings.length === 0) {
+          info.textContent = "No hay grupos en este turno.";
+          return;
+        }
+
+        info.textContent = `Grupos en este turno: ${bookings.length}`;
+        renderBookingsTable(bookings);
+      } catch (err) {
+        console.error(err);
+        info.textContent = "Error de conexión al cargar grupos.";
+      }
+    }
+
+    function renderBookingsTable(bookings) {
+    const tbody = document.getElementById("bookingsTableBody");
+    if (!tbody) return;
+
+    tbody.innerHTML = "";
+
+    bookings.forEach((b) => {
+        const tr = document.createElement("tr");
+
+        const tdId = document.createElement("td");
+        tdId.textContent = b.id;
+
+        const tdName = document.createElement("td");
+        tdName.innerHTML = `
+        <div>${b.nombre_referencia || "N/A"}</div>
+        <div class="small">Email: ${b.contacto_email || "N/A"}<br>Tel: ${b.contacto_telefono || "N/A"}</div>
+        `;
+
+        const tdCount = document.createElement("td");
+        tdCount.textContent = b.num_personas;
+
+        const tdBands = document.createElement("td");
+        tdBands.textContent = (b.num_manillas != null ? b.num_manillas : 0);
+
+        const tdEstado = document.createElement("td");
+        const spanEstado = document.createElement("span");
+        spanEstado.className = `status-badge status-${b.estado}`;
+
+        const statusLabels = {
+        programado: "Programado",
+        check_in: "Ingresó",
+        no_show: "No llegó",
+        cancelado: "Cancelado",
+        };
+
+        spanEstado.textContent = statusLabels[b.estado] || b.estado || "N/A";
+        tdEstado.appendChild(spanEstado);
+
+        const tdActions = document.createElement("td");
+        tdActions.className = "booking-actions";
+
+        const btnCheck = document.createElement("button");
+        btnCheck.textContent = "Ingresó";
+        btnCheck.onclick = () => updateBookingStatus(b.id, "check_in");
+
+        const btnCancel = document.createElement("button");
+        btnCancel.textContent = "Cancelar";
+        btnCancel.className = "danger";
+        btnCancel.onclick = () => updateBookingStatus(b.id, "cancelado");
+
+        // Select con horas de todos los turnos (robusto si slots aún no cargó)
+        const select = document.createElement("select");
+        select.id = `moveSelect-${b.id}`;
+
+        const slotsList = Array.isArray(slots) ? slots : [];
+        slotsList.forEach((s) => {
+        const opt = document.createElement("option");
+        opt.value = s.id;
+
+        const hi = String(s.hora_inicio || "").substring(0, 5);
+        const hf = String(s.hora_fin || "").substring(0, 5);
+        opt.textContent = `${hi} - ${hf}`;
+
+        if (s.id === b.slot_id) opt.selected = true;
+        select.appendChild(opt);
+        });
+
+        // Si no hay slots, deshabilita mover para evitar errores
+        if (slotsList.length === 0) {
+        const opt = document.createElement("option");
+        opt.value = "";
+        opt.textContent = "Sin turnos disponibles";
+        opt.selected = true;
+        select.appendChild(opt);
+        select.disabled = true;
+        }
+
+        const btnMove = document.createElement("button");
+        btnMove.textContent = "Mover";
+        btnMove.className = "secondary";
+        btnMove.disabled = select.disabled;
+
+        btnMove.onclick = () => {
+        const selectEl = document.getElementById(`moveSelect-${b.id}`);
+        if (!selectEl) return;
+
+        const nuevoSlotId = parseInt(selectEl.value, 10);
+        if (!Number.isFinite(nuevoSlotId)) return;
+
+        // Evita “mover” al mismo slot (mejor UX)
+        if (nuevoSlotId === b.slot_id) return;
+
+        moveBooking(b.id, nuevoSlotId);
+        };
+
+        tdActions.appendChild(btnCheck);
+        tdActions.appendChild(btnCancel);
+        tdActions.appendChild(select);
+        tdActions.appendChild(btnMove);
+
+        tr.appendChild(tdId);
+        tr.appendChild(tdName);
+        tr.appendChild(tdCount);
+        tr.appendChild(tdBands);
+        tr.appendChild(tdEstado);
+        tr.appendChild(tdActions);
+
+        tbody.appendChild(tr);
+    });
+    }
+
+    async function createBooking() {
+      if (!selectedSlotId) {
+        alert("Primero selecciona un turno.");
+        return;
+      }
+
+      const num = parseInt(document.getElementById("newGroupCount").value, 10);
+      const bands = parseInt(document.getElementById("newGroupBands").value, 10);
+      const nombre = document.getElementById("newGroupName").value.trim();
+      const email = document.getElementById("newGroupEmail").value.trim();
+      const phone = document.getElementById("newGroupPhone").value.trim();
+      const obsInput = document.getElementById("newGroupObs").value.trim();
+      const obs = obsInput !== "" ? obsInput : "N/A";
+      const warnSpan = document.getElementById("newGroupWarning");
+      warnSpan.textContent = "";
+
+      if (!num || num <= 0) {
+        alert("El número de personas debe ser mayor que 0.");
+        return;
+      }
+
+      const bandsParsed = Number.isNaN(bands) ? 0 : bands;
+      if (bandsParsed < 0) {
+        alert("El número de manillas no puede ser negativo.");
+        return;
+      }
+      if (bandsParsed > num) {
+        alert("No puede haber más manillas que personas en el grupo.");
+        return;
+      }
+
+      const payload = {
+        slot_id: selectedSlotId,
+        num_personas: num,
+        num_manillas: bandsParsed,
+        nombre_referencia: nombre || null,
+        contacto_email: email || null,
+        contacto_telefono: phone || null,
+        estado: "programado",
+        observacion: obs
+      };
+
+      try {
+        const res = await fetch(`${API_BASE}/bookings/`, {
+          method: "POST",
+          headers: authHeaders({
+            "Content-Type": "application/json",
+          }),
+          body: JSON.stringify(payload),
+        });
+
+        // Manejo estándar 401 / 403
+        if (handleAuthErrors(res, {
+          on401: notifySessionExpired,
+          on403: () => alert("No tienes permisos para esta acción.")
+        })) {
+          return;
+        }
+
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          alert("Error al crear grupo: " + (data.detail || res.status));
+          return;
+        }
+
+        await res.text();
+        warnSpan.textContent = "Grupo creado correctamente.";
+
+        await loadSlots();
+        await loadBookingsForSlot(selectedSlotId);
+      } catch (err) {
+        console.error(err);
+        alert("Error de conexión al crear grupo.");
+      }
+    }
+
+    async function updateBookingStatus(bookingId, newStatus) {
+      const statusLabels = {
+        programado: "Programado",
+        check_in: "Ingresó",
+        no_show: "No llegó",
+        cancelado: "Cancelado",
+      };
+      const label = statusLabels[newStatus] || newStatus;
+
+      if (!confirm(`¿Confirmas marcar el grupo ${bookingId} como "${label}"?`)) {
+        return;
+      }
+
+      const payload = { estado: newStatus };
+
+      try {
+        const res = await fetch(`${API_BASE}/bookings/${bookingId}/status`, {
+          method: "PUT",
+          headers: authHeaders({
+            "Content-Type": "application/json",
+          }),
+          body: JSON.stringify(payload),
+        });
+
+        // 🔹 Manejo estándar 401 / 403
+        if (handleAuthErrors(res, {
+          on401: notifySessionExpired,
+          on403: () => alert("No tienes permisos para esta acción.")
+        })) {
+          return;
+        }
+
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          alert("Error al actualizar estado: " + (data.detail || res.status));
+          return;
+        }
+
+        if (selectedSlotId) {
+          await loadBookingsForSlot(selectedSlotId);
+        }
+        await loadSlots();
+      } catch (err) {
+        console.error(err);
+        alert("Error de conexión al actualizar estado.");
+      }
+    }
+
+    async function moveBooking(bookingId, nuevoSlotId) {
+      if (Number.isNaN(nuevoSlotId) || nuevoSlotId <= 0) {
+        alert("ID de slot inválido.");
+        return;
+      }
+
+      const payload = { nuevo_slot_id: nuevoSlotId };
+
+      try {
+        const res = await fetch(`${API_BASE}/bookings/${bookingId}/move`, {
+          method: "PUT",
+          headers: authHeaders({
+            "Content-Type": "application/json",
+          }),
+          body: JSON.stringify(payload),
+        });
+
+        // 🔹 Manejo estándar 401 / 403
+        if (handleAuthErrors(res, {
+          on401: notifySessionExpired,
+          on403: () => alert("No tienes permisos para esta acción.")
+        })) {
+          return;
+        }
+
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          alert("Error al mover grupo: " + (data.detail || res.status));
+          return;
+        }
+
+        await res.text();
+
+        if (selectedSlotId) {
+          await loadBookingsForSlot(selectedSlotId);
+        }
+        await loadSlots();
+      } catch (err) {
+        console.error(err);
+        alert("Error de conexión al mover grupo.");
+      }
+    }
+
+    async function generateReport() {
+      const fecha = getSelectedDate();
+      try {
+        // 1) Generar el reporte en el backend (como ya lo hacías)
+        const res = await fetch(`${API_BASE}/reports/daily/${fecha}`, {
+          method: "POST",
+          headers: authHeaders(),
+        });
+
+        // Manejo estándar 401 / 403
+        if (handleAuthErrors(res, {
+          on401: notifySessionExpired,
+          on403: () => alert("No tienes permisos para esta acción.")
+        })) {
+          return;
+        }
+
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          alert("Error al generar el reporte diario: " + (data.detail || res.status));
+          return;
+        }
+
+        const data = await res.json();
+        alert(
+          `Reporte generado para ${data.fecha}.\n` +
+          `Total personas programadas: ${data.total_personas_programadas}\n` +
+          `Total asistentes: ${data.total_asistentes}\n` +
+          `Total no-show: ${data.total_no_show}\n` +
+          `Total manillas programadas: ${data.total_manillas_programadas || 0}`
+        );
+
+        // 2) Descargar el CSV con AUTH usando fetch
+        const downloadRes = await fetch(
+          `${API_BASE}/reports/daily/${fecha}/download`,
+          {
+            method: "GET",
+            headers: authHeaders(),   // 👈 AQUÍ VA EL TOKEN
+          }
+        );
+
+        // Manejo estándar 401 / 403 también aquí
+        if (handleAuthErrors(downloadRes, {
+          on401: notifySessionExpired,
+          on403: () => alert("No tienes permisos para descargar el reporte.")
+        })) {
+          return;
+        }
+
+        if (!downloadRes.ok) {
+          const errData = await downloadRes.json().catch(() => ({}));
+          alert("Error al descargar el CSV: " + (errData.detail || downloadRes.status));
+          return;
+        }
+
+        // 3) Crear un enlace temporal para forzar la descarga
+        const blob = await downloadRes.blob();
+        const url = window.URL.createObjectURL(blob);
+
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `turnflow_report_${fecha}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+
+        window.URL.revokeObjectURL(url);
+
+      } catch (err) {
+        console.error(err);
+        alert("Error de conexión al generar o descargar el reporte diario.");
+      }
+    }
+
+    async function sendEmailNotifications() {
+      const minutos = 10; // puedes hacerlo editable si quieres
+      try {
+        const res = await fetch(
+          `${API_BASE}/notifications/email/upcoming?minutos_ventana=${minutos}`,
+          {
+            method: "POST",
+            headers: authHeaders(),
+          }
+        );
+
+        // 🔹 Manejo estándar 401 / 403
+        if (handleAuthErrors(res, {
+          on401: notifySessionExpired,
+          on403: () => alert("No tienes permisos para esta acción.")
+        })) {
+          return;
+        }
+
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          alert("Error al enviar avisos: " + (data.detail || res.status));
+          return;
+        }
+
+        const data = await res.json();
+        alert(
+          `Avisos por email para hoy ${data.fecha}:\n` +
+          `Candidatos en ventana de ${data.minutos_ventana} min: ${data.candidatos}\n` +
+          `Correos enviados: ${data.enviados}`
+        );
+      } catch (err) {
+        console.error(err);
+        alert("Error de conexión al enviar avisos.");
+      }
+    }
+
+    // Inicialización al cargar la página
+    window.addEventListener("load", async () => {
+      setTodayDate();
+
+      const savedToken = sessionStorage.getItem("tf_token");
+
+      if (savedToken) {
+        authToken = savedToken;
+        const status = await loadCurrentUser();
+
+        if (status === "ok") {
+          showAppShell();
+          await loadSlots();
+        } else if (status === "network_error") {
+          showLoginScreen();
+          const loginStatusEl = document.getElementById("loginStatus");
+          if (loginStatusEl) {
+            loginStatusEl.textContent =
+              "No se pudo validar la sesión (sin conexión con el servidor).";
+          }
+        } else {
+          // token inválido u otro error → limpiamos y pedimos login
+          logout();
+        }
+      } else {
+        showLoginScreen();
+        const loginStatusEl = document.getElementById("loginStatus");
+        if (loginStatusEl) {
+          loginStatusEl.textContent = "Ingresa tus credenciales para comenzar.";
+        }
+      }
+    });
+
+  </script>
+</body>
+</html>
